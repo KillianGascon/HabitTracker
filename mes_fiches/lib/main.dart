@@ -1,5 +1,3 @@
-import 'widgets/liquid_glass.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,17 +6,18 @@ import 'screens/habit_form_sheet.dart';
 import 'screens/suivi_screen.dart';
 import 'screens/today_screen.dart';
 import 'storage/local_storage.dart';
-import 'storage/postgres_storage.dart';
+import 'storage/secret_store.dart';
 import 'store.dart';
 import 'theme.dart';
 import 'widgets/icons.dart';
+import 'widgets/liquid_glass.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final store = HabitStore(LocalStorage(prefs), PostgresStorage());
+  final store = await HabitStore.open(LocalStorage(prefs), const SecureSecretStore());
   runApp(MesFichesApp(store: store));
-  store.reconcile();
+  store.sync();
 }
 
 class MesFichesApp extends StatelessWidget {

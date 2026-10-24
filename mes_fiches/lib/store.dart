@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 
 import 'logic.dart';
 import 'models.dart';
-import 'storage/db_config.dart';
+import 'storage/api_client.dart';
+import 'storage/api_config.dart';
 import 'storage/local_storage.dart';
-import 'storage/postgres_storage.dart';
+import 'storage/secret_store.dart';
+import 'sync.dart';
 
 enum SyncStatus { notConfigured, syncing, synced, offline }
 
@@ -17,20 +20,43 @@ class PlusResult {
   final int streak;
 }
 
-/// État de l'appli. Toute modification est enregistrée en local puis
-/// envoyée à PostgreSQL ; en cas d'échec, l'état local est marqué « à
-/// renvoyer » et sera poussé en entier à la prochaine connexion réussie.
+/// État de l'appli. Toute modification est enregistrée en local et notée
+/// comme « à envoyer » ; la synchronisation avec l'API envoie ces changements
+/// puis récupère ceux faits ailleurs. Hors connexion, rien n'est perdu : les
+/// changements attendent la prochaine synchronisation réussie.
 class HabitStore extends ChangeNotifier {
-  HabitStore(this._local, this._remote) {
+  HabitStore._(this._local, this._secrets, this._httpClient) {
     final data = _local.load();
-    habits = data.habits..sort((a, b) => a.position.compareTo(b.position));
+    habits = data.habits..sort(_byPosition);
     logs = data.logs;
-    _remote.config = _local.loadDbConfig();
-    status = _remote.configured ? SyncStatus.offline : SyncStatus.notConfigured;
+    _pending = _local.loadPending();
   }
 
+  /// Charge l'état local et, si le téléphone est associé, prépare le client API.
+  static Future<HabitStore> open(LocalStorage local, SecretStore secrets, {http.Client? httpClient}) async {
+    final store = HabitStore._(local, secrets, httpClient);
+    final config = local.loadApiConfig();
+    final token = await secrets.read(_tokenKey);
+    if (config != null && token != null) {
+      store._api = ApiClient(
+        config,
+        cfClientSecret: await secrets.read(_cfSecretKey) ?? '',
+        token: token,
+        client: httpClient,
+      );
+      store.status = SyncStatus.offline;
+    }
+    return store;
+  }
+
+  static const _tokenKey = 'device_token';
+  static const _cfSecretKey = 'cf_client_secret';
+
   final LocalStorage _local;
-  final PostgresStorage _remote;
+  final SecretStore _secrets;
+  final http.Client? _httpClient;
+  ApiClient? _api;
+  late PendingChanges _pending;
 
   List<Habit> habits = [];
   Logs logs = {};
@@ -39,10 +65,17 @@ class HabitStore extends ChangeNotifier {
 
   SyncStatus status = SyncStatus.notConfigured;
   String? syncError;
-  DbConfig? get dbConfig => _remote.config;
-  bool get pendingChanges => _local.dirty;
+  DateTime? lastSyncAt;
+  ApiConfig? get apiConfig => _api?.config;
+  int get pendingCount => _pending.habits.length + _pending.logs.length;
 
   Future<void> _queue = Future.value();
+  Timer? _syncTimer;
+
+  static int _byPosition(Habit a, Habit b) {
+    final c = a.position.compareTo(b.position);
+    return c != 0 ? c : a.id.compareTo(b.id);
+  }
 
   // ------------------------------------------------------------------ dates
 
@@ -63,7 +96,7 @@ class HabitStore extends ChangeNotifier {
       if (wasToday || selectedDay.isAfter(today)) selectedDay = today;
       notifyListeners();
     }
-    unawaited(reconcile());
+    unawaited(sync());
   }
 
   // ---------------------------------------------------------------- lecture
@@ -85,7 +118,8 @@ class HabitStore extends ChangeNotifier {
     } else {
       log[key] = v;
     }
-    _persist((r) => r.setLog(h.id, key, v < 0 ? 0 : v));
+    _pending.log(h.id, key, v < 0 ? 0 : v);
+    _changed();
   }
 
   /// +1 sur le jour sélectionné, sans dépasser l'objectif de la période.
@@ -138,39 +172,38 @@ class HabitStore extends ChangeNotifier {
       h = old.copyWith(name: name.trim(), emoji: emoji, period: period, target: t);
       habits = [for (final x in habits) x.id == id ? h : x];
     }
-    _persist((r) => r.upsertHabits([h]));
+    _pending.habit(h);
+    _changed();
   }
 
   /// Supprime l'habitude et tout son historique.
   void deleteHabit(String id) {
-    habits = habits.where((h) => h.id != id).toList();
+    final h = habits.firstWhere((x) => x.id == id);
+    habits = habits.where((x) => x.id != id).toList();
     logs.remove(id);
-    _persist((r) => r.deleteHabit(id));
+    _pending.logs.removeWhere((_, l) => l['habitId'] == id);
+    _pending.habit(h, deleted: true);
+    _changed();
   }
 
   void loadExamples() {
     final ex = exampleHabits(dateKey(today));
     habits = [...habits, ...ex];
     selectedDay = today;
-    _persist((r) => r.upsertHabits(ex));
+    ex.forEach(_pending.habit);
+    _changed();
   }
 
   // --------------------------------------------------------------- synchro
 
-  void _persist(Future<void> Function(PostgresStorage r) op) {
+  void _changed() {
     notifyListeners();
     unawaited(_local.save(AppData(habits, logs)));
-    if (!_remote.configured) return;
-    _enqueue(() async {
-      if (_local.dirty) return _pushAll();
-      try {
-        await op(_remote);
-        _setStatus(SyncStatus.synced);
-      } catch (e) {
-        await _local.setDirty(true);
-        _setStatus(SyncStatus.offline, e);
-      }
-    });
+    unawaited(_local.savePending(_pending));
+    if (_api == null) return;
+    // Regroupe les changements rapprochés (plusieurs +1 d'affilée).
+    _syncTimer?.cancel();
+    _syncTimer = Timer(const Duration(milliseconds: 1500), () => unawaited(sync()));
   }
 
   Future<void> _enqueue(Future<void> Function() task) {
@@ -179,71 +212,120 @@ class HabitStore extends ChangeNotifier {
     return _queue;
   }
 
-  void _setStatus(SyncStatus s, [Object? error]) {
+  void _setStatus(SyncStatus s, [String? error]) {
     status = s;
-    syncError = error?.toString();
+    syncError = error;
     notifyListeners();
   }
 
-  Future<void> _pushAll() async {
+  /// Envoie les changements en attente, puis récupère ceux faits ailleurs.
+  Future<void> sync() {
+    _syncTimer?.cancel();
+    if (_api == null) return Future.value();
+    return _enqueue(_syncNow);
+  }
+
+  Future<void> _syncNow() async {
+    final api = _api;
+    if (api == null) return;
     _setStatus(SyncStatus.syncing);
     try {
-      await _remote.replaceAll(AppData(habits, logs));
-      await _local.setDirty(false);
-      _setStatus(SyncStatus.synced);
-    } catch (e) {
-      await _local.setDirty(true);
-      _setStatus(SyncStatus.offline, e);
-    }
-  }
-
-  /// Aligne local et base :
-  /// - changements locaux en attente → la base est remplacée par l'état local ;
-  /// - base vide et données locales → envoi des données locales ;
-  /// - sinon la base fait foi.
-  Future<void> reconcile() {
-    if (!_remote.configured) return Future.value();
-    return _enqueue(() async {
-      if (_local.dirty) return _pushAll();
-      _setStatus(SyncStatus.syncing);
-      try {
-        final remote = await _remote.fetchAll();
-        if (remote.habits.isEmpty && habits.isNotEmpty) {
-          await _remote.replaceAll(AppData(habits, logs));
-        } else {
-          habits = remote.habits;
-          logs = remote.logs;
-          await _local.save(remote);
-        }
-        _setStatus(SyncStatus.synced);
-      } catch (e) {
-        _setStatus(SyncStatus.offline, e);
+      if (!_pending.isEmpty) {
+        final sent = _pending.copy();
+        await api.push(sent);
+        _pending.acknowledge(sent);
+        await _local.savePending(_pending);
       }
-    });
+      final remote = await api.pull(_local.lastRev);
+      _merge(remote);
+      await _local.save(AppData(habits, logs));
+      await _local.setLastRev(remote.rev);
+      lastSyncAt = DateTime.now();
+      _setStatus(SyncStatus.synced);
+    } on ApiException catch (e) {
+      _setStatus(
+        SyncStatus.offline,
+        e.unauthorized ? 'Téléphone non reconnu par l’API (révoqué ?) : associez-le à nouveau.' : e.toString(),
+      );
+    }
   }
 
-  /// Teste la connexion puis l'enregistre. Renvoie un message d'erreur ou null.
-  Future<String?> configureDb(DbConfig? config) async {
-    await _queue;
-    await _remote.close();
-    final previous = _remote.config;
-    _remote.config = config;
-    if (config == null) {
-      await _local.saveDbConfig(null);
-      await _local.setDirty(false);
-      _setStatus(SyncStatus.notConfigured);
-      return null;
+  /// Applique les changements reçus, sauf là où un changement local attend
+  /// encore d'être envoyé (il est plus récent et partira au prochain envoi).
+  void _merge(RemoteChanges r) {
+    if (r.habits.isEmpty && r.logs.isEmpty) return;
+    final byId = {for (final h in habits) h.id: h};
+    for (final j in r.habits) {
+      final id = j['id'] as String;
+      if (_pending.habits.containsKey(id)) continue;
+      if (j['deleted'] == true) {
+        byId.remove(id);
+        logs.remove(id);
+      } else {
+        byId[id] = Habit.fromJson(j);
+      }
     }
+    habits = byId.values.toList()..sort(_byPosition);
+    for (final j in r.logs) {
+      final habitId = j['habitId'] as String;
+      final day = j['day'] as String;
+      if (!byId.containsKey(habitId) || _pending.logs.containsKey(PendingChanges.logKey(habitId, day))) continue;
+      final count = j['count'] as int;
+      if (count > 0) {
+        (logs[habitId] ??= {})[day] = count;
+      } else {
+        logs[habitId]?.remove(day);
+        if (logs[habitId]?.isEmpty ?? false) logs.remove(habitId);
+      }
+    }
+    notifyListeners();
+  }
+
+  /// Associe ce téléphone à l'API avec le code d'association, puis envoie
+  /// toutes les données locales et récupère celles du serveur.
+  /// Renvoie un message d'erreur, ou null si tout s'est bien passé.
+  Future<String?> pair(ApiConfig config, {required String cfClientSecret, required String code}) async {
+    await _queue;
+    final api = ApiClient(config, cfClientSecret: cfClientSecret, client: _httpClient);
     try {
-      await _remote.ping();
-    } catch (e) {
-      _remote.config = previous;
-      _setStatus(previous == null ? SyncStatus.notConfigured : SyncStatus.offline, e);
+      await api.pair(code.trim());
+    } on ApiException catch (e) {
       return e.toString();
     }
-    await _local.saveDbConfig(config);
-    await reconcile();
+    await _secrets.write(_tokenKey, api.token!);
+    await _secrets.write(_cfSecretKey, cfClientSecret);
+    await _local.saveApiConfig(config);
+    await _local.setLastRev(0);
+    // Tout l'existant local part au serveur (fusion : la dernière écriture gagne).
+    for (final h in habits) {
+      _pending.habit(h);
+    }
+    logs.forEach((habitId, days) => days.forEach((day, count) => _pending.log(habitId, day, count)));
+    await _local.savePending(_pending);
+    _api = api;
+    await sync();
     return status == SyncStatus.synced ? null : syncError;
+  }
+
+  /// Oublie l'association (les données restent sur le téléphone).
+  Future<void> unpair() async {
+    await _queue;
+    _syncTimer?.cancel();
+    _api = null;
+    await _secrets.delete(_tokenKey);
+    await _secrets.delete(_cfSecretKey);
+    await _local.saveApiConfig(null);
+    await _local.setLastRev(0);
+    _pending = PendingChanges();
+    await _local.savePending(_pending);
+    lastSyncAt = null;
+    _setStatus(SyncStatus.notConfigured);
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
   }
 }
 

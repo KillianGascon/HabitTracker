@@ -3,17 +3,20 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models.dart';
-import 'db_config.dart';
+import '../sync.dart';
+import 'api_config.dart';
 
 /// Copie locale de tout l'état : l'appli reste utilisable hors connexion.
 class LocalStorage {
-  LocalStorage(this._prefs);
+  /// [prefix] isole les clés (les tests simulent plusieurs téléphones).
+  LocalStorage(this._prefs, {String prefix = 'mes-fiches'})
+      : _stateKey = '$prefix:v1',
+        _pendingKey = '$prefix:pending',
+        _revKey = '$prefix:rev',
+        _apiKey = '$prefix:api';
 
   final SharedPreferences _prefs;
-
-  static const _stateKey = 'mes-fiches:v1';
-  static const _dirtyKey = 'mes-fiches:dirty';
-  static const _dbKey = 'mes-fiches:db';
+  final String _stateKey, _pendingKey, _revKey, _apiKey;
 
   AppData load() {
     final raw = _prefs.getString(_stateKey);
@@ -44,21 +47,33 @@ class LocalStorage {
         }),
       );
 
-  /// Vrai quand des changements locaux n'ont pas pu être envoyés à la base.
-  bool get dirty => _prefs.getBool(_dirtyKey) ?? false;
-  Future<void> setDirty(bool v) => _prefs.setBool(_dirtyKey, v);
+  /// Changements pas encore envoyés à l'API.
+  PendingChanges loadPending() {
+    final raw = _prefs.getString(_pendingKey);
+    if (raw == null) return PendingChanges();
+    try {
+      return PendingChanges.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return PendingChanges();
+    }
+  }
 
-  DbConfig? loadDbConfig() {
-    final raw = _prefs.getString(_dbKey);
+  Future<void> savePending(PendingChanges p) => _prefs.setString(_pendingKey, jsonEncode(p.toJson()));
+
+  /// Dernière révision reçue de l'API (0 = jamais synchronisé).
+  int get lastRev => _prefs.getInt(_revKey) ?? 0;
+  Future<void> setLastRev(int rev) => _prefs.setInt(_revKey, rev);
+
+  ApiConfig? loadApiConfig() {
+    final raw = _prefs.getString(_apiKey);
     if (raw == null) return null;
     try {
-      return DbConfig.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      return ApiConfig.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> saveDbConfig(DbConfig? c) => c == null
-      ? _prefs.remove(_dbKey)
-      : _prefs.setString(_dbKey, jsonEncode(c.toJson()));
+  Future<void> saveApiConfig(ApiConfig? c) =>
+      c == null ? _prefs.remove(_apiKey) : _prefs.setString(_apiKey, jsonEncode(c.toJson()));
 }
