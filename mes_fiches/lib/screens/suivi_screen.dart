@@ -7,7 +7,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/icons.dart';
 import 'day_sheet.dart';
-import 'db_settings_sheet.dart';
+import 'api_settings_sheet.dart';
 import 'habit_form_sheet.dart';
 import 'today_screen.dart' show ScreenHeader;
 
@@ -127,9 +127,9 @@ class _DbButton extends StatelessWidget {
     };
     return Semantics(
       button: true,
-      label: 'Base de données',
+      label: 'Synchronisation',
       child: InkResponse(
-        onTap: () => openDbSettings(context),
+        onTap: () => openApiSettings(context),
         radius: 24,
         child: SizedBox(
           width: 44,
