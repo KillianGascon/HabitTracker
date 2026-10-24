@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/habit_form_sheet.dart';
+import 'screens/loading_screen.dart';
 import 'screens/suivi_screen.dart';
 import 'screens/today_screen.dart';
 import 'storage/local_storage.dart';
@@ -12,12 +14,54 @@ import 'theme.dart';
 import 'widgets/icons.dart';
 import 'widgets/liquid_glass.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final store = await HabitStore.open(LocalStorage(prefs), const SecureSecretStore());
-  runApp(MesFichesApp(store: store));
-  store.sync();
+  runApp(const Bootstrap());
+}
+
+/// Affiche le loader pendant le chargement (données, police), puis l'appli en fondu.
+class Bootstrap extends StatefulWidget {
+  const Bootstrap({super.key});
+
+  @override
+  State<Bootstrap> createState() => _BootstrapState();
+}
+
+class _BootstrapState extends State<Bootstrap> {
+  HabitStore? _store;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    // Durée minimale : le loader ne fait pas qu'un flash.
+    final minimum = Future<void>.delayed(const Duration(milliseconds: 900));
+    final prefs = await SharedPreferences.getInstance();
+    final store = await HabitStore.open(LocalStorage(prefs), const SecureSecretStore());
+    // Police Inter (téléchargée au premier lancement) : on l'attend, sans
+    // bloquer plus de 3 s hors connexion (repli sur la police du système).
+    GoogleFonts.inter();
+    await GoogleFonts.pendingFonts().timeout(const Duration(seconds: 3)).then((_) {}, onError: (_) {});
+    await minimum;
+    if (!mounted) return;
+    setState(() => _store = store);
+    store.sync();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = _store;
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 450),
+        child: store == null ? const LoadingScreen() : MesFichesApp(store: store),
+      ),
+    );
+  }
 }
 
 class MesFichesApp extends StatelessWidget {
