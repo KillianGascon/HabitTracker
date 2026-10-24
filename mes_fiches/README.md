@@ -4,35 +4,38 @@ Appli Android (Flutter) de suivi d’habitudes façon fiches bristol : tâches �
 X fois par jour, par semaine ou par mois, grilles de suivi façon contributions GitHub.
 Reproduit le design de `../Appli de suivi d'habitudes/design_handoff_appli_habitudes`.
 
-## Base de données
+## Synchronisation (API)
 
-Le schéma est géré par l’API : voir [`../api/migrations`](../api/migrations), appliqué
-automatiquement au démarrage de l’API.
+L’appli parle uniquement à l’API (`../api`), jamais directement à PostgreSQL.
 
-> ⚠️ Transition en cours : l’appli se connecte encore **directement** à PostgreSQL (écran
-> ci-dessous) ; elle passera par l’API (`../api`). Cette connexion directe n’est pas compatible
-> avec le nouveau schéma.
+Dans l’appli : onglet **Suivi** → icône en haut à droite → adresse de l’API, nom du téléphone,
+code d’association (`PAIRING_CODE` du serveur) et, en production, Client ID / Secret du jeton
+de service Cloudflare Access → « Associer ce téléphone ».
 
-Dans l’appli : onglet **Suivi** → icône base de données en haut à droite → hôte, port, base,
-utilisateur, mot de passe → « Tester et enregistrer ».
+- L’état complet reste sur le téléphone (`shared_preferences`) : l’appli marche sans réseau.
+- Chaque changement est noté « à envoyer » ; la synchro (1,5 s après un changement, au
+  démarrage, au retour au premier plan, ou « Synchroniser maintenant ») envoie ces changements
+  puis récupère ceux faits ailleurs depuis la dernière révision reçue.
+- Conflit sur une même habitude ou un même jour : la dernière écriture gagne. Un changement
+  local pas encore envoyé n’est jamais écrasé par la synchro entrante.
+- À l’association, toutes les données locales sont envoyées et fusionnées avec celles du serveur.
+- Le jeton du téléphone et le secret Cloudflare sont dans le coffre Android
+  (`flutter_secure_storage`), jamais dans les préférences.
 
-Le téléphone doit pouvoir joindre le serveur (même Wi-Fi, ou VPN type NetBird/Tailscale), et
-PostgreSQL doit écouter sur le réseau :
+En dev : API lancée sur le PC (`cd ../api && npm run db:start && npm run dev`), adresse
+`http://10.0.2.2:3000` depuis l’émulateur. Le HTTP non chiffré n’est autorisé que dans les
+builds **debug** (`flutter run`) ; la release exige HTTPS.
 
-- `postgresql.conf` : `listen_addresses = '*'`
-- `pg_hba.conf` : `host  mes_fiches  postgres  192.168.1.0/24  scram-sha-256` (adapter le réseau)
-- pare-feu Windows : autoriser le port 5432 en entrant.
+## Tests
 
-### Synchronisation
+```bash
+flutter test                       # logique métier
+# + synchro de bout en bout entre deux téléphones simulés, contre l’API de dev :
+API_TEST_URL=http://localhost:3000 API_TEST_PAIRING_CODE=<PAIRING_CODE> flutter test
+```
 
-L’état complet est toujours gardé sur le téléphone (`shared_preferences`, clé `mes-fiches:v1`) :
-l’appli marche sans réseau.
-
-- Chaque changement est enregistré en local puis envoyé à la base.
-- Si l’envoi échoue, l’état local est marqué « en attente » et **remplace** le contenu de la base
-  à la prochaine connexion réussie (retour au premier plan, ou « Synchroniser maintenant »).
-- Sinon, au démarrage et au retour au premier plan, **la base fait foi** (les modifications faites
-  directement en SQL sont récupérées). Exception : base vide + données locales → envoi du local.
+Chaque lancement de bout en bout associe deux appareils : l’API limite les associations à 5
+par 15 minutes (redémarrer l’API de dev remet le compteur à zéro).
 
 ## Build
 
@@ -55,8 +58,9 @@ via `systemProp.javax.net.ssl.trustStore=…`.
 | Fichier | Rôle |
 |---|---|
 | `lib/logic.dart` | dates locales, périodes, séries, niveaux de grille |
-| `lib/store.dart` | état de l’appli + synchro |
-| `lib/storage/` | stockage local, accès PostgreSQL |
-| `lib/screens/` | Aujourd’hui, Suivi, feuilles Créer/Modifier, Modifier le jour, Base de données |
+| `lib/store.dart` | état de l’appli + synchro (changements en attente, fusion) |
+| `lib/sync.dart` | format des changements échangés avec l’API |
+| `lib/storage/` | stockage local, client de l’API, coffre à secrets |
+| `lib/screens/` | Aujourd’hui, Suivi, feuilles Créer/Modifier, Modifier le jour, Synchronisation |
 | `lib/widgets/` | fiche bristol, boutons, segments, grille, icônes Phosphor |
 | `lib/theme.dart` | tokens clair / sombre |
