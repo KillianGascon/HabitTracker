@@ -58,20 +58,21 @@ Déploiement (Coolify, tunnel Cloudflare, Cloudflare Access) : voir
 
 ## Développement
 
-Avec le PostgreSQL installé sur le PC :
+Un PostgreSQL de dev propre au projet tourne à partir des binaires PostgreSQL du PC (`initdb`,
+`pg_ctl`, `psql` dans le PATH) : données dans `.pgdata/`, port 55432, uniquement en local. Il
+n’a besoin ni des droits administrateur ni du PostgreSQL éventuellement installé en service.
 
 ```bash
-# 1. une seule fois : utilisateur + bases de dev et de test (mot de passe au choix)
-psql -U postgres -v pwd=<mot-de-passe> -f scripts/dev-db.sql
-
-# 2. copier .env.example en .env et y reporter ce mot de passe + un PAIRING_CODE
+cp .env.example .env   # puis choisir un mot de passe et un PAIRING_CODE
 npm install
-npm run dev         # → http://localhost:3000/docs (recharge à chaque modification)
+npm run db:start       # 1er lancement : crée l’utilisateur et les bases, puis démarre
+npm run dev            # → http://localhost:3000/docs (recharge à chaque modification)
 
 npm run typecheck
 npm test
+npm run db:stop
 ```
 
-`npm run dev` et `npm test` lisent `.env` (ignoré par Git).
+`db:start`, `dev` et `test` lisent `.env` (ignoré par Git).
 
 ⚠️ Les tests **effacent** le schéma `public` de la base `TEST_DATABASE_URL` : utilisez une base dédiée.
