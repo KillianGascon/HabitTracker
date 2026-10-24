@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo « Mes fiches » : une fiche blanche, sa ligne violette, une coche.
+     Grille 108 × 108 (format des icônes d'écran de démarrage Android 12+ :
+     tout le dessin tient dans le cercle central visible). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,30 H70 A5,5 0 0 1 75,35 V73 A5,5 0 0 1 70,78 H38 A5,5 0 0 1 33,73 V35 A5,5 0 0 1 38,30 Z" />
+    <path
+        android:fillColor="#A67CEB"
+        android:pathData="M33,42 H75 V43.6 H33 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#7C4DDB"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M42,59 L50.5,67.5 L66,51" />
+</vector>
