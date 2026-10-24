@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-79adf451-2e39-4f5f-ba99-da9709549b4a/styles.css">
+  <script src="_ds/nocturne-79adf451-2e39-4f5f-ba99-da9709549b4a/_ds_bundle.js"></script>
+  <style>[data-scroll]::-webkit-scrollbar{display:none}</style>
+</helmet>
+<div style="width:100%;height:100%;position:relative;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--font-body);overflow:hidden">
+  <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:var(--ink)">
+    <span>9:41</span>
+    <span style="display:flex;gap:4px;align-items:flex-end"><span style="width:3px;height:5px;background:var(--ink);border-radius:1px"></span><span style="width:3px;height:7px;background:var(--ink);border-radius:1px"></span><span style="width:3px;height:9px;background:var(--ink);border-radius:1px"></span><span style="width:20px;height:10px;border:1.5px solid var(--ink);border-radius:3px;margin-left:4px"></span></span>
+  </div>
+  <div data-scroll="1" style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none">
+
+    <sc-if value="{{ onToday }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:8px 18px 28px;display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">{{ dateLabel }}</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+            <h1 style="font-size:30px;margin:0;color:var(--ink)">{{ title }}</h1>
+            <sc-if value="{{ notToday }}" hint-placeholder-val="{{ false }}"><button onClick="{{ backToday }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:13px;color:var(--accent);cursor:pointer">Revenir à aujourd’hui</button></sc-if>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasHabits }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px">
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+              <button onClick="{{ d.select }}" style="height:64px;padding:0;border-radius:6px;background:{{ d.bg }};box-shadow:0 0 0 1px {{ d.border }};border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font:inherit;color:{{ d.ink }};position:relative;overflow:hidden">
+                <span style="font-size:11px;opacity:.7">{{ d.l }}</span>
+                <span style="font-size:17px;font-weight:500;font-variant-numeric:tabular-nums">{{ d.n }}</span>
+                <span style="width:6px;height:6px;border-radius:50%;background:{{ d.dotBg }};box-shadow:inset 0 0 0 1px {{ d.dotBorder }}"></span>
+                <span style="position:absolute;left:0;right:0;top:14px;height:1px;background:{{ d.line }}"></span>
+              </button>
+            </sc-for>
+          </div>
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 2px">
+                <h2 style="font-size:16px;margin:0;color:var(--ink);letter-spacing:0">{{ g.label }}</h2>
+                <span style="font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:{{ g.counterColor }}">{{ g.counter }}</span>
+              </div>
+              <sc-for list="{{ g.items }}" as="h" hint-placeholder-count="2">
+                <div role="button" onClick="{{ h.tap }}" onPointerDown="{{ h.down }}" onPointerUp="{{ h.up }}" onPointerLeave="{{ h.up }}" style="background-color:{{ h.bg }};background-image:repeating-linear-gradient(to bottom, transparent 0 51px, var(--ruled) 51px 52px, transparent 52px 75px);border-radius:4px;box-shadow:0 0 0 1px {{ h.ring }}, 0 2px 6px rgba(0,0,0,.08);padding:0 14px 12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background-color .2s" style-active="transform:scale(.99)">
+                  <div style="display:flex;align-items:center;gap:10px;margin:0 -14px;padding:12px 14px 10px;border-bottom:1px solid var(--red)">
+                    <span style="font-size:22px;line-height:1">{{ h.e }}</span>
+                    <span style="flex:1;min-width:0;font-size:17px;font-weight:500;color:var(--card-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.name }}</span>
+                    <sc-if value="{{ h.done }}" hint-placeholder-val="{{ false }}"><span style="width:26px;height:26px;border-radius:50%;background:var(--green);color:var(--done-bg);display:grid;place-items:center"><svg width="14" height="14" viewBox="0 0 256 256"><polyline points="40 144 96 200 224 72" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></span></sc-if>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px">
+                      <div style="display:flex;gap:12px;font-size:13px;color:var(--card-muted);white-space:nowrap"><span>{{ h.freq }}</span><span>{{ h.streak }}</span></div>
+                      <div style="display:flex;gap:4px"><sc-for list="{{ h.segs }}" as="s" hint-placeholder-count="3"><span style="flex:1;height:8px;border-radius:2px;background:{{ s.bg }}"></span></sc-for></div>
+                    </div>
+                    <button onClick="{{ h.minus }}" onPointerDown="{{ stop }}" aria-label="Retirer une fois" style="width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--rule);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer;opacity:{{ h.minusOpacity }}"><svg width="18" height="18" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+                    <button onClick="{{ h.plus }}" onPointerDown="{{ stop }}" aria-label="Ajouter une fois" style="width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--card-ink);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line><line x1="128" y1="40" x2="128" y2="216" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <p style="margin:0;text-align:center;font-size:12px;color:var(--muted)">Touchez une fiche pour cocher une fois · appui long pour la modifier</p>
+        </sc-if>
+
+        <sc-if value="{{ noHabits }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:28px;background:var(--card);background-image:repeating-linear-gradient(to bottom, transparent 0 27px, var(--ruled) 27px 28px);background-position:0 54px;border-radius:4px;box-shadow:0 0 0 1px var(--rule), 0 2px 6px rgba(0,0,0,.08);padding:0 18px 20px;display:flex;flex-direction:column;gap:14px;color:var(--card-ink)">
+            <div style="margin:0 -18px;padding:16px 18px 12px;border-bottom:1px solid var(--red);font-size:20px;font-weight:500">Votre première fiche</div>
+            <p style="margin:0;font-size:15px;line-height:28px;color:var(--card-ink);text-wrap:pretty">La table est vide. Notez ce que vous voulez faire chaque jour, chaque semaine ou chaque mois, comme sur vos fiches papier.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+              <button onClick="{{ openCreate }}" style="height:50px;border-radius:6px;border:1px solid var(--card-accent);background:var(--card);color:var(--card-accent);font:inherit;font-size:16px;font-weight:500;cursor:pointer" style-active="background:var(--seg)">Créer ma première habitude</button>
+              <button onClick="{{ loadExamples }}" style="height:50px;border-radius:6px;border:1px solid var(--rule);background:var(--card);color:var(--card-ink);font:inherit;font-size:15px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0" style-active="background:var(--seg)"><span>Charger des exemples</span><span style="font-size:11px;color:var(--card-muted)">vaisselle, lessive, factures…</span></button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ onSuivi }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:8px 18px 28px;display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">16 dernières semaines</div>
+          <h1 style="font-size:30px;margin:0;color:var(--ink)">Suivi</h1>
+        </div>
+        <div style="background:var(--card);border-radius:4px;box-shadow:0 0 0 1px var(--rule), 0 2px 6px rgba(0,0,0,.08);padding:0 14px 14px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 -14px;padding:12px 14px 10px;border-bottom:1px solid var(--red)">
+            <span style="font-size:17px;font-weight:500;color:var(--card-ink)">Toutes les habitudes</span>
+            <span style="font-size:12px;color:var(--card-muted)">Touchez un jour</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:grid;grid-template-columns:20px repeat(16,minmax(0,1fr));gap:3px;font-size:10px;color:var(--card-muted);height:13px"><span></span><sc-for list="{{ months }}" as="m" hint-placeholder-count="16"><span style="white-space:nowrap;overflow:visible">{{ m.m }}</span></sc-for></div>
+            <div style="display:grid;grid-template-columns:20px repeat(16,minmax(0,1fr));grid-template-rows:repeat(7,auto);grid-auto-flow:column;gap:3px;font-size:9px;color:var(--card-muted)">
+              <span></span><span style="align-self:center">lun</span><span></span><span style="align-self:center">mer</span><span></span><span style="align-self:center">ven</span><span></span>
+              <sc-for list="{{ global }}" as="c" hint-placeholder-count="112"><button onClick="{{ c.open }}" aria-label="{{ c.label }}" style="aspect-ratio:1;padding:0;border:0;border-radius:3px;background:{{ c.bg }};box-shadow:{{ c.ring }};cursor:pointer"></button></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:11px;color:var(--card-muted)"><span style="margin-right:4px">Moins</span><span style="width:11px;height:11px;border-radius:2px;background:var(--seg)"></span><span style="width:11px;height:11px;border-radius:2px;background:color-mix(in oklch, var(--green) 35%, var(--seg))"></span><span style="width:11px;height:11px;border-radius:2px;background:color-mix(in oklch, var(--green) 70%, var(--seg))"></span><span style="width:11px;height:11px;border-radius:2px;background:var(--green)"></span><span style="width:11px;height:11px;border-radius:2px;background:var(--green-deep)"></span><span style="margin-left:4px">Plus</span></div>
+        </div>
+        <sc-if value="{{ noHabits }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;padding:0 2px">
+            <p style="margin:0;font-size:15px;color:var(--muted);text-wrap:pretty">Rien à suivre pour l’instant. Chaque habitude aura ici sa propre grille.</p>
+            <button onClick="{{ openCreate }}" style="height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font:inherit;font-size:15px;font-weight:500;cursor:pointer">Créer une habitude</button>
+          </div>
+        </sc-if>
+        <sc-for list="{{ sgroups }}" as="g" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <h2 style="font-size:16px;margin:0;padding:0 2px;color:var(--ink);letter-spacing:0">{{ g.label }}</h2>
+            <sc-for list="{{ g.items }}" as="h" hint-placeholder-count="2">
+              <div style="background:var(--card);border-radius:4px;box-shadow:0 0 0 1px var(--rule), 0 2px 6px rgba(0,0,0,.08);padding:0 14px 14px;display:flex;flex-direction:column;gap:12px">
+                <button onClick="{{ h.edit }}" aria-label="Modifier l’habitude" style="display:flex;align-items:center;gap:10px;margin:0 -14px;padding:12px 14px 10px;border:0;border-bottom:1px solid var(--red);background:transparent;font:inherit;text-align:left;cursor:pointer;color:var(--card-ink)">
+                  <span style="font-size:22px;line-height:1">{{ h.e }}</span>
+                  <span style="flex:1;min-width:0;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.name }}</span>
+                  <span style="font-size:12px;color:var(--card-muted);white-space:nowrap">{{ h.freq }}</span>
+                  <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="var(--card-muted)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M92.7 216H48a8 8 0 0 1-8-8v-44.7a8 8 0 0 1 2.3-5.6l120-120a8 8 0 0 1 11.4 0l44.6 44.6a8 8 0 0 1 0 11.4Z"></path><line x1="136" y1="64" x2="192" y2="120"></line></svg>
+                </button>
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:var(--card-muted)">Série en cours</span><span style="font-size:19px;font-weight:500;color:var(--card-ink);white-space:nowrap">{{ h.streak }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:var(--card-muted)">Meilleure série</span><span style="font-size:19px;font-weight:500;color:var(--card-ink);white-space:nowrap">{{ h.best }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:var(--card-muted)">Total</span><span style="font-size:19px;font-weight:500;color:var(--card-ink);white-space:nowrap">{{ h.total }}</span></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(16,minmax(0,1fr));grid-template-rows:repeat(7,auto);grid-auto-flow:column;gap:3px">
+                  <sc-for list="{{ h.cells }}" as="c" hint-placeholder-count="112"><button onClick="{{ c.open }}" aria-label="{{ c.label }}" style="aspect-ratio:1;padding:0;border:0;border-radius:2px;background:{{ c.bg }};box-shadow:{{ c.ring }};cursor:pointer"></button></sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+  </div>
+  <div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px 22px;background:var(--tab-bg);box-shadow:0 -1px 0 var(--rule)">
+    <button onClick="{{ goToday }}" style="height:52px;border:0;background:transparent;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tabToday }};font-size:11px;font-weight:500;cursor:pointer">
+      <svg width="24" height="24" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><rect x="40" y="40" width="176" height="176" rx="8"></rect><line x1="176" y1="24" x2="176" y2="56"></line><line x1="80" y1="24" x2="80" y2="56"></line><line x1="40" y1="88" x2="216" y2="88"></line><polyline points="96 152 120 176 168 128"></polyline></svg>
+      <span>Aujourd’hui</span>
+    </button>
+    <button onClick="{{ goSuivi }}" style="height:52px;border:0;background:transparent;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tabSuivi }};font-size:11px;font-weight:500;cursor:pointer">
+      <svg width="24" height="24" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round"><rect x="48" y="48" width="64" height="64" rx="8"></rect><rect x="144" y="48" width="64" height="64" rx="8"></rect><rect x="48" y="144" width="64" height="64" rx="8"></rect><rect x="144" y="144" width="64" height="64" rx="8"></rect></svg>
+      <span>Suivi</span>
+    </button>
+    <button onClick="{{ openCreate }}" style="height:52px;border:0;background:transparent;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer">
+      <svg width="24" height="24" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round"><circle cx="128" cy="128" r="96"></circle><line x1="88" y1="128" x2="168" y2="128"></line><line x1="128" y1="88" x2="128" y2="168"></line></svg>
+      <span>Nouvelle</span>
+    </button>
+  </div>
+
+  <sc-if value="{{ dayOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:5;background:rgba(10,11,18,.45);display:flex;align-items:flex-end">
+      <div onClick="{{ stop }}" style="width:100%;max-height:84%;overflow-y:auto;scrollbar-width:none;background:var(--card);color:var(--card-ink);border-radius:14px 14px 0 0;padding:8px 18px 28px;display:flex;flex-direction:column;gap:4px;box-shadow:0 -12px 40px rgba(0,0,0,.35)">
+        <span style="align-self:center;width:36px;height:4px;border-radius:2px;background:var(--rule);margin-bottom:6px"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -18px;padding:0 18px 10px;border-bottom:1px solid var(--red)">
+          <div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:12px;color:var(--card-muted)">Modifier le jour</span><span style="font-size:19px;font-weight:500">{{ dayTitle }}</span></div>
+          <button onClick="{{ closeSheet }}" style="height:40px;padding:0 14px;border-radius:6px;border:1px solid var(--card-accent);background:transparent;color:var(--card-accent);font:inherit;font-size:14px;font-weight:500;cursor:pointer">Terminé</button>
+        </div>
+        <sc-for list="{{ dayRows }}" as="r" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px solid var(--ruled)">
+            <span style="font-size:20px;width:28px;text-align:center">{{ r.e }}</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+              <span style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+              <span style="font-size:12px;color:{{ r.subColor }}">{{ r.sub }}</span>
+            </div>
+            <button onClick="{{ r.minus }}" aria-label="Retirer une fois" style="width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--rule);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer;opacity:{{ r.minusOpacity }}"><svg width="16" height="16" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+            <span style="width:22px;text-align:center;font-size:17px;font-weight:500;font-variant-numeric:tabular-nums">{{ r.count }}</span>
+            <button onClick="{{ r.plus }}" aria-label="Ajouter une fois" style="width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--card-ink);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer"><svg width="16" height="16" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line><line x1="128" y1="40" x2="128" y2="216" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ formOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:5;background:rgba(10,11,18,.45);display:flex;align-items:flex-end">
+      <div onClick="{{ stop }}" style="width:100%;max-height:92%;overflow-y:auto;scrollbar-width:none;background:var(--card);color:var(--card-ink);border-radius:14px 14px 0 0;padding:8px 18px 26px;display:flex;flex-direction:column;gap:18px;box-shadow:0 -12px 40px rgba(0,0,0,.35)">
+        <span style="align-self:center;width:36px;height:4px;border-radius:2px;background:var(--rule)"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-6px -18px 0;padding:0 18px 10px;border-bottom:1px solid var(--red)">
+          <span style="font-size:20px;font-weight:500">{{ formTitle }}</span>
+          <button onClick="{{ closeSheet }}" style="height:40px;padding:0 4px;border:0;background:transparent;color:var(--card-muted);font:inherit;font-size:14px;cursor:pointer">Annuler</button>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:var(--card-muted)">Nom</span>
+          <input value="{{ draftName }}" onChange="{{ onName }}" placeholder="Ex. Arroser les plantes" style="height:48px;padding:0 12px;border-radius:6px;border:1px solid var(--rule);background:var(--card);color:var(--card-ink);font:inherit;font-size:17px;caret-color:var(--card-accent);outline:none" style-focus="border-color:var(--card-accent)">
+        </label>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:var(--card-muted)">Icône</span>
+          <div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px">
+            <sc-for list="{{ emojis }}" as="em" hint-placeholder-count="16"><button onClick="{{ em.pick }}" aria-label="{{ em.e }}" style="height:40px;padding:0;border:0;border-radius:6px;background:{{ em.bg }};box-shadow:{{ em.ring }};font-size:20px;cursor:pointer">{{ em.e }}</button></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:var(--card-muted)">Fréquence</span>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--rule);border-radius:6px;overflow:hidden">
+            <sc-for list="{{ pers }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.pick }}" style="height:44px;border:0;border-left:1px solid {{ p.sep }};background:transparent;box-shadow:{{ p.ring }};color:{{ p.color }};font:inherit;font-size:14px;font-weight:500;cursor:pointer">{{ p.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:12px;color:var(--card-muted)">Nombre de fois</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button onClick="{{ goalMinus }}" aria-label="Moins" style="width:48px;height:48px;flex:none;border-radius:6px;border:1px solid var(--rule);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer;opacity:{{ goalMinusOpacity }}"><svg width="18" height="18" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-size:28px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums">{{ goal }}</span>
+              <span style="font-size:13px;color:var(--card-muted)">{{ goalSentence }}</span>
+            </div>
+            <button onClick="{{ goalPlus }}" aria-label="Plus" style="width:48px;height:48px;flex:none;border-radius:6px;border:1px solid var(--card-ink);background:transparent;color:var(--card-ink);display:grid;place-items:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line><line x1="128" y1="40" x2="128" y2="216" stroke="currentColor" stroke-width="20" stroke-linecap="round"></line></svg></button>
+          </div>
+          <div style="display:flex;gap:4px"><sc-for list="{{ previewSegs }}" as="s" hint-placeholder-count="3"><span style="flex:1;height:8px;border-radius:2px;background:var(--seg)"></span></sc-for></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          <button onClick="{{ save }}" style="height:50px;border-radius:6px;border:1px solid var(--card-accent);background:transparent;color:var(--card-accent);font:inherit;font-size:16px;font-weight:500;cursor:pointer;opacity:{{ saveOpacity }}" style-active="background:var(--seg)">{{ saveLabel }}</button>
+          <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}"><button onClick="{{ del }}" style="height:46px;border-radius:6px;border:1px solid {{ delBorder }};background:transparent;color:var(--red);font:inherit;font-size:15px;cursor:pointer">{{ delLabel }}</button></sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:760},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;today&quot;,&quot;yesterday&quot;,&quot;suivi&quot;,&quot;day&quot;,&quot;create&quot;,&quot;edit&quot;,&quot;empty&quot;],&quot;default&quot;:&quot;today&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const DEFAULTS = [
+  { id: 'vaisselle', e: '🍽️', name: 'Faire la vaisselle', per: 'jour', goal: 3 },
+  { id: 'lit', e: '🛏️', name: 'Faire le lit', per: 'jour', goal: 1 },
+  { id: 'ranger', e: '✨', name: 'Ranger 10 minutes', per: 'jour', goal: 1 },
+  { id: 'lessive', e: '🧺', name: 'Lancer une lessive', per: 'semaine', goal: 2 },
+  { id: 'aspi', e: '🧹', name: 'Passer l’aspirateur', per: 'semaine', goal: 1 },
+  { id: 'courses', e: '🛒', name: 'Faire les courses', per: 'semaine', goal: 1 },
+  { id: 'factures', e: '🧾', name: 'Payer les factures', per: 'mois', goal: 1 },
+  { id: 'draps', e: '🛌', name: 'Changer les draps', per: 'mois', goal: 2 },
+];
+const EMOJIS = ['🍽️', '🛏️', '✨', '🧺', '🧹', '🛒', '🧾', '🛌', '💊', '💧', '🪴', '🐕', '📚', '🏃', '🗑️', '📞'];
+const GROUPS = [['jour', 'Chaque jour'], ['semaine', 'Chaque semaine'], ['mois', 'Chaque mois']];
+const UNIT = { jour: 'j', semaine: 'sem.', mois: 'mois' };
+const N = 112, TODAY = 106;
+const DATES = Array.from({ length: N }, (_, i) => new Date(2026, 6, 6 + i));
+const MS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+const ML = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const DL = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const DS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+const LV = ['var(--seg)', 'color-mix(in oklch, var(--green) 35%, var(--seg))', 'color-mix(in oklch, var(--green) 70%, var(--seg))', 'var(--green)', 'var(--green-deep)'];
+const bucket = (per, i) => per === 'jour' ? i : per === 'semaine' ? Math.floor(i / 7) : DATES[i].getMonth();
+const blank = () => Array.from({ length: N }, () => ({}));
+const fullDate = i => { const d = DATES[i]; return `${DL[d.getDay()]} ${d.getDate()} ${ML[d.getMonth()]}`; };
+
+function gen() {
+  let a = 7;
+  const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const c = blank();
+  for (let i = 0; i <= TODAY; i++) {
+    const x = r(), d = c[i];
+    d.vaisselle = x < .6 ? 3 : x < .85 ? 2 : x < .95 ? 1 : 0;
+    d.lit = r() < .85 ? 1 : 0;
+    d.ranger = r() < .55 ? 1 : 0;
+  }
+  for (let w = 0; w < 15; w++) {
+    const b = w * 7;
+    if (r() < .85) c[b + 1].lessive = 1;
+    if (r() < .75) c[b + 5].lessive = 1;
+    if (r() < .8) c[b + 5].aspi = 1;
+    if (r() < .9) c[b + 5].courses = 1;
+  }
+  DATES.forEach((dt, i) => {
+    if (i > TODAY) return;
+    const dm = dt.getDate();
+    if (dm === 5 && dt.getMonth() !== 9) c[i].factures = 1;
+    if ((dm === 3 || dm === 17) && r() < .8) c[i].draps = 1;
+  });
+  Object.assign(c[105], { vaisselle: 3, lit: 1, ranger: 0, lessive: 1 });
+  Object.assign(c[106], { vaisselle: 2, lit: 1, ranger: 0, aspi: 1 });
+  c[89].draps = 1; c[103].draps = 0;
+  return c;
+}
+
+class Component extends DCLogic {
+  state = { habits: DEFAULTS, counts: gen(), screen: 'today', day: TODAY, sheet: null, draft: null, confirmDel: false };
+  componentDidMount() {
+    const s = this.props.screen;
+    if (s === 'empty') this.setState({ habits: [], counts: blank() });
+    else if (s === 'suivi') this.setState({ screen: 'suivi' });
+    else if (s === 'day') this.setState({ screen: 'suivi', sheet: 'day', sel: 105 });
+    else if (s === 'create') this.openCreate();
+    else if (s === 'edit') this.openEdit('lessive');
+    else if (s === 'yesterday') this.setState({ day: 105 });
+  }
+  componentWillUnmount() { clearTimeout(this.lpT); }
+  get(i, h) { return this.state.counts[i][h.id] || 0; }
+  periodSum(h, i) {
+    if (h.per === 'jour') return this.get(i, h);
+    const b = bucket(h.per, i); let s = 0;
+    for (let j = 0; j <= TODAY; j++) if (bucket(h.per, j) === b) s += this.get(j, h);
+    return s;
+  }
+  setCount(i, h, v) {
+    this.setState(s => { const counts = s.counts.slice(); counts[i] = { ...counts[i], [h.id]: Math.max(0, v) }; return { counts }; });
+  }
+  plus(h) { const i = this.state.day; if (this.periodSum(h, i) < h.goal) this.setCount(i, h, this.get(i, h) + 1); }
+  minus(h) {
+    const i = this.state.day;
+    if (this.get(i, h) > 0) return this.setCount(i, h, this.get(i, h) - 1);
+    if (h.per === 'jour') return;
+    for (let j = TODAY; j >= 0; j--) if (bucket(h.per, j) === bucket(h.per, i) && this.get(j, h) > 0) return this.setCount(j, h, this.get(j, h) - 1);
+  }
+  stats(h) {
+    const sums = new Map(); let total = 0;
+    for (let i = 0; i <= TODAY; i++) { const b = bucket(h.per, i), v = this.get(i, h); sums.set(b, (sums.get(b) || 0) + v); total += v; }
+    const keys = [...sums.keys()], cb = bucket(h.per, TODAY);
+    let best = 0, run = 0, cur = 0;
+    keys.forEach(k => { if (sums.get(k) >= h.goal) { run++; best = Math.max(best, run); } else if (k !== cb) run = 0; });
+    for (let j = keys.length - 1; j >= 0; j--) { const k = keys[j]; if (sums.get(k) >= h.goal) cur++; else if (k === cb) continue; else break; }
+    return { cur, best, total, sums };
+  }
+  openCreate = () => this.setState({ sheet: 'form', confirmDel: false, draft: { id: null, name: '', e: '✨', per: 'jour', goal: 1 } });
+  openEdit(id) { const h = this.state.habits.find(x => x.id === id); if (h) this.setState({ sheet: 'form', confirmDel: false, draft: { ...h } }); }
+  setDraft(p) { this.setState(s => ({ draft: { ...s.draft, ...p } })); }
+  save = () => {
+    const d = this.state.draft; if (!d.name.trim()) return;
+    this.setState(s => ({
+      habits: d.id ? s.habits.map(h => h.id === d.id ? { ...d, name: d.name.trim() } : h) : [...s.habits, { ...d, name: d.name.trim(), id: 'h' + Date.now() }],
+      sheet: null,
+    }));
+  };
+  del = () => {
+    if (!this.state.confirmDel) return this.setState({ confirmDel: true });
+    const id = this.state.draft.id;
+    this.setState(s => ({ habits: s.habits.filter(h => h.id !== id), sheet: null }));
+  };
+  renderVals() {
+    const { habits, screen, day, sheet, draft, confirmDel, sel } = this.state;
+    const isToday = day === TODAY, has = habits.length > 0;
+    const stop = e => e.stopPropagation();
+    const statsMap = new Map(habits.map(h => [h.id, this.stats(h)]));
+
+    const mk = h => {
+      const c = Math.min(h.goal, this.periodSum(h, day)), done = c >= h.goal, st = statsMap.get(h.id);
+      return {
+        ...h, done, freq: `${h.goal} fois par ${h.per}`,
+        streak: st.cur > 0 ? `🔥 ${st.cur} ${UNIT[h.per]}` : '',
+        segs: Array.from({ length: h.goal }, (_, i) => ({ bg: i < c ? 'var(--green)' : 'var(--seg)' })),
+        bg: done ? 'var(--done-bg)' : 'var(--card)', ring: done ? 'var(--green)' : 'var(--rule)',
+        minusOpacity: c > 0 ? 1 : .35,
+        tap: () => { if (this.lp) { this.lp = false; return; } this.plus(h); },
+        down: () => { this.lp = false; clearTimeout(this.lpT); this.lpT = setTimeout(() => { this.lp = true; this.openEdit(h.id); }, 520); },
+        up: () => clearTimeout(this.lpT),
+        plus: e => { e.stopPropagation(); this.plus(h); },
+        minus: e => { e.stopPropagation(); this.minus(h); },
+      };
+    };
+    const groups = GROUPS.map(([per, label]) => {
+      const items = habits.filter(h => h.per === per).map(mk);
+      const n = items.filter(i => i.done).length, all = n === items.length;
+      return { per, label, items, counter: `${n}/${items.length}`, counterColor: all ? 'var(--done-ink-bg)' : 'var(--muted)' };
+    }).filter(g => g.items.length);
+    const dailyH = habits.filter(h => h.per === 'jour');
+    const days = Array.from({ length: 7 }, (_, k) => {
+      const i = TODAY - 6 + k, s = i === day, d = DATES[i];
+      const all = dailyH.length > 0 && dailyH.every(h => this.get(i, h) >= h.goal);
+      return {
+        l: DS[d.getDay()], n: d.getDate(), select: () => this.setState({ day: i }),
+        dotBg: all ? 'var(--green)' : 'transparent', dotBorder: all ? 'var(--green)' : 'var(--muted)',
+        bg: s ? 'var(--card)' : 'transparent', border: s ? 'var(--rule)' : 'transparent',
+        line: s ? 'var(--red)' : 'transparent', ink: s ? 'var(--card-ink)' : 'var(--ink)',
+      };
+    });
+
+    const ring = i => sheet === 'day' && i === sel ? '0 0 0 2px var(--card-ink)' : 'none';
+    const cell = (i, lvl) => i > TODAY
+      ? { bg: 'transparent', ring: 'inset 0 0 0 1px var(--seg)', open: () => {}, label: '' }
+      : { bg: LV[lvl], ring: ring(i), open: () => this.setState({ sheet: 'day', sel: i }), label: fullDate(i) };
+    const goalSum = dailyH.reduce((s, h) => s + h.goal, 0);
+    const global = DATES.map((_, i) => cell(i, goalSum ? Math.round(4 * dailyH.reduce((s, h) => s + Math.min(h.goal, this.get(i, h)), 0) / goalSum) : 0));
+    const months = Array.from({ length: 16 }, (_, w) => {
+      const wk = DATES.slice(w * 7, w * 7 + 7), first = wk.find(d => d.getDate() === 1);
+      return { m: w === 0 ? MS[wk[0].getMonth()] : first ? MS[first.getMonth()] : '' };
+    });
+    const sgroups = GROUPS.map(([per, label]) => ({
+      label,
+      items: habits.filter(h => h.per === per).map(h => {
+        const st = statsMap.get(h.id), u = UNIT[h.per];
+        const cells = DATES.map((_, i) => {
+          const v = this.get(i, h);
+          const lvl = h.per === 'jour' ? (v === 0 ? 0 : Math.min(4, Math.round(1 + 3 * v / h.goal))) : (v > 0 ? 4 : (st.sums.get(bucket(h.per, i)) >= h.goal ? 1 : 0));
+          return cell(i, lvl);
+        });
+        return { ...h, freq: `${h.goal} fois par ${h.per}`, streak: `${st.cur} ${u}`, best: `${st.best} ${u}`, total: `${st.total}`, cells, edit: () => this.openEdit(h.id) };
+      }),
+    })).filter(g => g.items.length);
+
+    const dayRows = sheet !== 'day' ? [] : habits.map(h => {
+      const v = this.get(sel, h), daily = h.per === 'jour', done = daily && v >= h.goal;
+      return {
+        e: h.e, name: h.name, count: v,
+        sub: daily ? (done ? `Objectif atteint · ${v}/${h.goal}` : `${v}/${h.goal} ce jour-là`) : `${h.goal} fois par ${h.per}`,
+        subColor: done ? 'var(--done-ink)' : 'var(--card-muted)', minusOpacity: v > 0 ? 1 : .35,
+        minus: () => this.setCount(sel, h, v - 1), plus: () => this.setCount(sel, h, Math.min(daily ? h.goal : 9, v + 1)),
+      };
+    });
+
+    const f = draft || { name: '', e: '', per: 'jour', goal: 1 };
+    const max = f.per === 'jour' ? 12 : f.per === 'semaine' ? 14 : 31;
+    return {
+      onToday: screen === 'today', onSuivi: screen === 'suivi', hasHabits: has, noHabits: !has,
+      title: isToday ? 'Aujourd’hui' : day === TODAY - 1 ? 'Hier' : DL[DATES[day].getDay()],
+      dateLabel: fullDate(day), notToday: !isToday, backToday: () => this.setState({ day: TODAY }),
+      days, groups, months, global, sgroups, stop,
+      goToday: () => this.setState({ screen: 'today' }), goSuivi: () => this.setState({ screen: 'suivi' }),
+      tabToday: screen === 'today' ? 'var(--accent)' : 'var(--muted)', tabSuivi: screen === 'suivi' ? 'var(--accent)' : 'var(--muted)',
+      openCreate: this.openCreate, loadExamples: () => this.setState({ habits: DEFAULTS, counts: blank(), day: TODAY }),
+      closeSheet: () => this.setState({ sheet: null }),
+      dayOpen: sheet === 'day', dayTitle: sheet === 'day' ? fullDate(sel) : '', dayRows,
+      formOpen: sheet === 'form', isEdit: !!f.id, formTitle: f.id ? 'Modifier l’habitude' : 'Nouvelle habitude',
+      draftName: f.name, onName: e => this.setDraft({ name: e.target.value }),
+      emojis: EMOJIS.map(e => ({ e, pick: () => this.setDraft({ e }), bg: e === f.e ? 'var(--seg)' : 'transparent', ring: e === f.e ? 'inset 0 0 0 1.5px var(--card-accent)' : 'none' })),
+      pers: GROUPS.map(([per], k) => ({
+        label: ['Par jour', 'Par semaine', 'Par mois'][k], pick: () => this.setDraft({ per, goal: Math.min(f.goal, per === 'jour' ? 12 : per === 'semaine' ? 14 : 31) }),
+        sep: k === 0 ? 'transparent' : 'var(--rule)', ring: per === f.per ? 'inset 0 0 0 1.5px var(--card-accent)' : 'none',
+        color: per === f.per ? 'var(--card-accent)' : 'var(--card-ink)',
+      })),
+      goal: f.goal, goalSentence: `${f.goal} fois par ${f.per}`, goalMinusOpacity: f.goal > 1 ? 1 : .35,
+      goalMinus: () => this.setDraft({ goal: Math.max(1, f.goal - 1) }), goalPlus: () => this.setDraft({ goal: Math.min(max, f.goal + 1) }),
+      previewSegs: Array.from({ length: f.goal }, (_, i) => ({ i })),
+      save: this.save, saveOpacity: f.name.trim() ? 1 : .45, saveLabel: f.id ? 'Enregistrer' : 'Créer l’habitude',
+      del: this.del, delLabel: confirmDel ? 'Confirmer la suppression' : 'Supprimer cette habitude',
+      delBorder: confirmDel ? 'var(--red)' : 'transparent',
+    };
+  }
+}
+</script>
+</body>
+</html>
