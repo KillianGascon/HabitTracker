@@ -58,13 +58,20 @@ Déploiement (Coolify, tunnel Cloudflare, Cloudflare Access) : voir
 
 ## Développement
 
+Avec le PostgreSQL installé sur le PC :
+
 ```bash
+# 1. une seule fois : utilisateur + bases de dev et de test (mot de passe au choix)
+psql -U postgres -v pwd=<mot-de-passe> -f scripts/dev-db.sql
+
+# 2. copier .env.example en .env et y reporter ce mot de passe + un PAIRING_CODE
 npm install
-DATABASE_URL=postgres://postgres@localhost:5432/mes_fiches PAIRING_CODE=un-code-de-dev-assez-long npm run dev
-# → http://localhost:3000/docs
+npm run dev         # → http://localhost:3000/docs (recharge à chaque modification)
 
 npm run typecheck
-TEST_DATABASE_URL=postgres://postgres@localhost:5432/mes_fiches_test npm test
+npm test
 ```
+
+`npm run dev` et `npm test` lisent `.env` (ignoré par Git).
 
 ⚠️ Les tests **effacent** le schéma `public` de la base `TEST_DATABASE_URL` : utilisez une base dédiée.

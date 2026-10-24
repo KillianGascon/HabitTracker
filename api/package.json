@@ -9,9 +9,9 @@
   },
   "scripts": {
     "start": "node src/server.ts",
-    "dev": "node --watch src/server.ts",
+    "dev": "node --env-file-if-exists=.env --watch src/server.ts",
     "typecheck": "tsc",
-    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\""
+    "test": "node --env-file-if-exists=.env --test --test-concurrency=1 \"test/**/*.test.ts\""
   },
   "dependencies": {
     "@fastify/helmet": "^13.2.0",
