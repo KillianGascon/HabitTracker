@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug uniquement : HTTP non chiffré autorisé pour joindre l'API de dev
+         sur le PC (http://10.0.2.2:3000 depuis l'émulateur). La release reste
+         en HTTPS seulement. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>
