@@ -6,14 +6,12 @@ Reproduit le design de `../Appli de suivi d'habitudes/design_handoff_appli_habit
 
 ## Base de données
 
-```bash
-createdb -U postgres mes_fiches
-psql -U postgres -d mes_fiches -f db/schema.sql
-```
+Le schéma est géré par l’API : voir [`../api/migrations`](../api/migrations), appliqué
+automatiquement au démarrage de l’API.
 
-- `habit` : une ligne par habitude (`period` = `day` | `week` | `month`, `target` = nb de fois).
-- `habit_log` : nombre de fois par habitude et par jour (`ON DELETE CASCADE`).
-- `habit_period_progress` : vue de la progression par période (pratique pour des requêtes à la main).
+> ⚠️ Transition en cours : l’appli se connecte encore **directement** à PostgreSQL (écran
+> ci-dessous) ; elle passera par l’API (`../api`). Cette connexion directe n’est pas compatible
+> avec le nouveau schéma.
 
 Dans l’appli : onglet **Suivi** → icône base de données en haut à droite → hôte, port, base,
 utilisateur, mot de passe → « Tester et enregistrer ».
