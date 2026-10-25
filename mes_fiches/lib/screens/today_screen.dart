@@ -43,8 +43,9 @@ class TodayScreen extends StatelessWidget {
         const Padding(padding: EdgeInsets.only(top: 6), child: _EmptyCard())
       else ...[
         const _WeekStrip(),
+        if (store.categories.isNotEmpty) const _CategoryBar(),
         for (final per in Period.values)
-          if (store.habits.any((h) => h.period == per)) _Group(period: per),
+          if (store.visibleHabits.any((h) => h.period == per)) _Group(period: per),
         Text(
           'Touchez une fiche pour cocher une fois · appui long pour la modifier',
           textAlign: TextAlign.center,
@@ -233,6 +234,68 @@ class _DayChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Filtre par catégorie
+// ---------------------------------------------------------------------------
+
+class _CategoryBar extends StatelessWidget {
+  const _CategoryBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = StoreScope.of(context);
+    final p = Palette.of(context);
+    final current = store.category;
+
+    Widget chip(String label, String? value) {
+      final sel = value == current;
+      return Semantics(
+        button: true,
+        selected: sel,
+        child: Material(
+          color: sel ? p.accent : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: sel ? p.accent : p.muted.withValues(alpha: .45)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              store.selectCategory(value);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: sel ? Colors.white : p.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Row(
+        children: [
+          chip('Toutes', null),
+          for (final c in store.categories) ...[
+            const SizedBox(width: 8),
+            chip(categoryLabel(c), c),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Groupes et fiches
 // ---------------------------------------------------------------------------
 
@@ -244,7 +307,7 @@ class _Group extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = StoreScope.of(context);
     final p = Palette.of(context);
-    final items = store.habits.where((h) => h.period == period).toList();
+    final items = store.visibleHabits.where((h) => h.period == period).toList();
     final done = items.where((h) => store.periodCountOf(h, store.selectedDay) >= h.target).length;
     final all = done == items.length;
 
