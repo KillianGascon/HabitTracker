@@ -4,6 +4,7 @@ interface HabitChange {
   id: string;
   name: string;
   emoji: string;
+  category: string;
   period: 'day' | 'week' | 'month';
   target: number;
   position: number;
@@ -30,6 +31,14 @@ const habit = {
     id: { type: 'string', pattern: ID, examples: ['h1729500000000'] },
     name: { type: 'string', minLength: 1, maxLength: 100, pattern: '\\S', examples: ['Faire la vaisselle'] },
     emoji: { type: 'string', minLength: 1, maxLength: 16, examples: ['🍽️'] },
+    category: {
+      type: 'string',
+      maxLength: 40,
+      pattern: '^(\\S(.*\\S)?)?$',
+      default: '',
+      description: 'Catégorie (Ménage, Loisirs…) ; vide = sans catégorie',
+      examples: ['Ménage'],
+    },
     period: { type: 'string', enum: ['day', 'week', 'month'] },
     target: { type: 'integer', minimum: 1, maximum: 50, description: 'Nombre de fois par période' },
     position: { type: 'integer', minimum: -1000000, maximum: 1000000 },
@@ -98,7 +107,7 @@ export async function syncRoutes(app: FastifyInstance) {
       const since = req.query.since;
       const [habits, logs] = await Promise.all([
         app.db.query<HabitChange & { rev: string }>(
-          `SELECT id, name, emoji, period, target, position, to_char(created, 'YYYY-MM-DD') AS created,
+          `SELECT id, name, emoji, category, period, target, position, to_char(created, 'YYYY-MM-DD') AS created,
                   deleted, updated_at AS "updatedAt", rev
              FROM habit WHERE rev > $1 ORDER BY rev`,
           [since],
@@ -152,12 +161,12 @@ export async function syncRoutes(app: FastifyInstance) {
       try {
         await client.query('BEGIN');
         const h = await client.query(
-          `INSERT INTO habit (id, name, emoji, period, target, position, created, deleted, updated_at)
-           SELECT id, btrim(name), emoji, period, target, position, created, deleted, "updatedAt"
-             FROM jsonb_to_recordset($1::jsonb) AS x(id text, name text, emoji text, period text,
+          `INSERT INTO habit (id, name, emoji, category, period, target, position, created, deleted, updated_at)
+           SELECT id, btrim(name), emoji, coalesce(category, ''), period, target, position, created, deleted, "updatedAt"
+             FROM jsonb_to_recordset($1::jsonb) AS x(id text, name text, emoji text, category text, period text,
                   target smallint, position int, created date, deleted boolean, "updatedAt" timestamptz)
            ON CONFLICT (id) DO UPDATE SET
-             name = EXCLUDED.name, emoji = EXCLUDED.emoji, period = EXCLUDED.period,
+             name = EXCLUDED.name, emoji = EXCLUDED.emoji, category = EXCLUDED.category, period = EXCLUDED.period,
              target = EXCLUDED.target, position = EXCLUDED.position, deleted = EXCLUDED.deleted,
              updated_at = EXCLUDED.updated_at
            WHERE habit.updated_at <= EXCLUDED.updated_at`,

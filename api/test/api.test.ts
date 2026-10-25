@@ -26,6 +26,7 @@ const habit = (over: Record<string, unknown> = {}) => ({
   id: 'h1',
   name: 'Faire la vaisselle',
   emoji: '🍽️',
+  category: 'Ménage',
   period: 'day',
   target: 3,
   position: 0,
@@ -45,7 +46,7 @@ describe('API Mes fiches', { skip: !url && 'TEST_DATABASE_URL non défini' }, ()
     db = createDb(url!);
     await db.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
     await db.query('DROP SEQUENCE IF EXISTS sync_rev');
-    assert.deepEqual(await migrate(db), ['001_init.sql']);
+    assert.deepEqual(await migrate(db), ['001_init.sql', '002_habit_category.sql']);
     assert.deepEqual(await migrate(db), [], 'les migrations ne repassent pas');
     app = await buildApp(config(), db);
   });
@@ -117,6 +118,7 @@ describe('API Mes fiches', { skip: !url && 'TEST_DATABASE_URL non défini' }, ()
     assert.equal(body.habits.length, 2);
     assert.deepEqual(body.logs.map((l: { day: string; count: number }) => [l.day, l.count]), [['2026-10-21', 2]]);
     assert.equal(body.habits[0].created, '2026-10-21');
+    assert.equal(body.habits[0].category, 'Ménage');
     assert.ok(body.rev > 0);
 
     const again = await app.inject({ url: `/v1/sync?since=${body.rev}`, headers: auth() });
@@ -144,12 +146,22 @@ describe('API Mes fiches', { skip: !url && 'TEST_DATABASE_URL non défini' }, ()
     assert.equal(pull.habits[0].deleted, true, 'la suppression est transmise');
   });
 
+  test('catégorie : facultative, vide par défaut', async () => {
+    const { category: _, ...sans } = habit({ id: 'h3', name: 'Sans catégorie' });
+    const push = await app.inject({ method: 'POST', url: '/v1/sync', headers: auth(), payload: { habits: [sans] } });
+    assert.equal(push.statusCode, 200);
+    const pull = (await app.inject({ url: '/v1/sync', headers: auth() })).json();
+    assert.equal(pull.habits.find((h: { id: string }) => h.id === 'h3').category, '');
+  });
+
   test('validation stricte des données', async () => {
     const cases = [
       { habits: [habit({ period: 'year' })] },
       { habits: [habit({ target: 0 })] },
       { habits: [habit({ name: '   ' })] },
       { habits: [habit({ created: '2026-13-01' })] },
+      { habits: [habit({ category: ' Ménage' })] },
+      { habits: [habit({ category: 'x'.repeat(41) })] },
       { habits: [habit({ extra: 'champ inconnu' })] },
       { habits: [habit({ id: "h1'; DROP TABLE habit;--" })] },
       { logs: [{ habitId: 'h1', day: '2026-10-21', count: -1, updatedAt: '2026-10-21T10:00:00Z' }] },
