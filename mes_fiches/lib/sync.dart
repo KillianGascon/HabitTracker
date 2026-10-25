@@ -60,8 +60,9 @@ class PendingChanges {
         'habits': [
           for (final h in habits.values)
             {
-              for (final k in ['id', 'name', 'emoji', 'period', 'target', 'position', 'created', 'deleted', 'updatedAt'])
-                k: h[k],
+              for (final k in ['id', 'name', 'emoji', 'category', 'period', 'target', 'position', 'created', 'deleted', 'updatedAt'])
+                // `category` manque dans les changements notés avant son ajout.
+                if (h[k] != null) k: h[k],
             },
         ],
         'logs': logs.values.toList(),

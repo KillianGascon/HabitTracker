@@ -99,6 +99,33 @@ class HabitStore extends ChangeNotifier {
     unawaited(sync());
   }
 
+  // ------------------------------------------------------------- catégories
+
+  String? _category;
+
+  /// Catégories utilisées : d'abord celles proposées, puis les autres (A → Z).
+  List<String> get categories {
+    final used = {for (final h in habits) if (h.category.isNotEmpty) h.category};
+    return [
+      for (final (_, name) in kCategories) if (used.remove(name)) name,
+      ...used.toList()..sort(),
+    ];
+  }
+
+  /// Catégorie affichée sur l'écran du jour (`null` = toutes). Revient à
+  /// « toutes » si plus aucune habitude n'est dans cette catégorie.
+  String? get category => categories.contains(_category) ? _category : null;
+
+  void selectCategory(String? c) {
+    _category = c;
+    notifyListeners();
+  }
+
+  List<Habit> get visibleHabits {
+    final c = category;
+    return c == null ? habits : habits.where((h) => h.category == c).toList();
+  }
+
   // ---------------------------------------------------------------- lecture
 
   Map<String, int>? logOf(Habit h) => logs[h.id];
@@ -153,7 +180,9 @@ class HabitStore extends ChangeNotifier {
     required String emoji,
     required Period period,
     required int target,
+    String category = '',
   }) {
+    category = category.trim();
     final t = target.clamp(1, period.maxTarget);
     final Habit h;
     if (id == null) {
@@ -163,13 +192,14 @@ class HabitStore extends ChangeNotifier {
         emoji: emoji,
         period: period,
         target: t,
+        category: category,
         created: dateKey(today),
         position: habits.isEmpty ? 0 : habits.last.position + 1,
       );
       habits = [...habits, h];
     } else {
       final old = habits.firstWhere((x) => x.id == id);
-      h = old.copyWith(name: name.trim(), emoji: emoji, period: period, target: t);
+      h = old.copyWith(name: name.trim(), emoji: emoji, period: period, target: t, category: category);
       habits = [for (final x in habits) x.id == id ? h : x];
     }
     _pending.habit(h);

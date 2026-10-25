@@ -26,6 +26,7 @@ class Habit {
     required this.period,
     required this.target,
     required this.created,
+    this.category = '',
     this.position = 0,
   });
 
@@ -37,6 +38,9 @@ class Habit {
 
   /// Date locale de création, `YYYY-MM-DD`.
   final String created;
+
+  /// Catégorie libre (« Ménage », « Loisirs »…) ; vide = sans catégorie.
+  final String category;
   final int position;
 
   String get frequency => '$target fois par ${period.word}';
@@ -46,6 +50,7 @@ class Habit {
     String? emoji,
     Period? period,
     int? target,
+    String? category,
     int? position,
   }) =>
       Habit(
@@ -55,6 +60,7 @@ class Habit {
         period: period ?? this.period,
         target: target ?? this.target,
         created: created,
+        category: category ?? this.category,
         position: position ?? this.position,
       );
 
@@ -62,6 +68,7 @@ class Habit {
         'id': id,
         'name': name,
         'emoji': emoji,
+        'category': category,
         'period': period.name,
         'target': target,
         'created': created,
@@ -75,6 +82,7 @@ class Habit {
         period: PeriodLabels.parse(j['period'] as String),
         target: j['target'] as int,
         created: j['created'] as String,
+        category: (j['category'] as String?) ?? '',
         position: (j['position'] as int?) ?? 0,
       );
 }
@@ -95,18 +103,36 @@ const kEmojis = [
   '💊', '💧', '🪴', '🐕', '📚', '🏃', '🗑️', '📞',
 ];
 
+/// Catégories proposées dans le formulaire (on peut aussi en créer).
+const kCategories = [
+  ('🧹', 'Ménage'),
+  ('📋', 'Corvées'),
+  ('🎨', 'Loisirs'),
+  ('📚', 'Études'),
+  ('💪', 'Santé'),
+  ('💼', 'Travail'),
+];
+
+/// Emoji d'une catégorie proposée, `null` pour une catégorie créée.
+String? categoryEmoji(String category) {
+  for (final (emoji, name) in kCategories) {
+    if (name == category) return emoji;
+  }
+  return null;
+}
+
 /// « Charger des exemples » : habitudes sans historique.
 List<Habit> exampleHabits(String today) {
   final base = DateTime.now().millisecondsSinceEpoch;
   final specs = [
-    ('🍽️', 'Faire la vaisselle', Period.day, 3),
-    ('🛏️', 'Faire le lit', Period.day, 1),
-    ('✨', 'Ranger 10 minutes', Period.day, 1),
-    ('🧺', 'Lancer une lessive', Period.week, 2),
-    ('🧹', 'Passer l’aspirateur', Period.week, 1),
-    ('🛒', 'Faire les courses', Period.week, 1),
-    ('🧾', 'Payer les factures', Period.month, 1),
-    ('🛌', 'Changer les draps', Period.month, 2),
+    ('🍽️', 'Faire la vaisselle', Period.day, 3, 'Ménage'),
+    ('🛏️', 'Faire le lit', Period.day, 1, 'Ménage'),
+    ('📚', 'Réviser 30 minutes', Period.day, 1, 'Études'),
+    ('🧺', 'Lancer une lessive', Period.week, 2, 'Ménage'),
+    ('🧹', 'Passer l’aspirateur', Period.week, 1, 'Ménage'),
+    ('🛒', 'Faire les courses', Period.week, 1, 'Corvées'),
+    ('🎨', 'Dessiner', Period.week, 2, 'Loisirs'),
+    ('🧾', 'Payer les factures', Period.month, 1, 'Corvées'),
   ];
   return [
     for (var i = 0; i < specs.length; i++)
@@ -116,6 +142,7 @@ List<Habit> exampleHabits(String today) {
         name: specs[i].$2,
         period: specs[i].$3,
         target: specs[i].$4,
+        category: specs[i].$5,
         created: today,
         position: i,
       ),
