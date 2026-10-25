@@ -121,6 +121,12 @@ String? categoryEmoji(String category) {
   return null;
 }
 
+/// « 🧹 Ménage », ou le nom seul pour une catégorie créée.
+String categoryLabel(String category) {
+  final emoji = categoryEmoji(category);
+  return emoji == null ? category : '$emoji $category';
+}
+
 /// « Charger des exemples » : habitudes sans historique.
 List<Habit> exampleHabits(String today) {
   final base = DateTime.now().millisecondsSinceEpoch;

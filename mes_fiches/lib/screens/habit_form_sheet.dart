@@ -25,6 +25,10 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
   late String _emoji = widget.habit?.emoji ?? '✨';
   late Period _period = widget.habit?.period ?? Period.day;
   late int _target = widget.habit?.target ?? 1;
+  // Nouvelle habitude : la catégorie affichée sur l'écran du jour.
+  late String _category = widget.habit?.category ?? StoreScope.read(context).category ?? '';
+  late final _custom = TextEditingController();
+  bool _customOpen = false;
   bool _confirmDelete = false;
 
   bool get _isEdit => widget.habit != null;
@@ -39,6 +43,7 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
   @override
   void dispose() {
     _name.dispose();
+    _custom.dispose();
     super.dispose();
   }
 
@@ -50,6 +55,7 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
       emoji: _emoji,
       period: _period,
       target: _target,
+      category: _category,
     );
     Navigator.pop(context);
   }
@@ -65,6 +71,12 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
     final p = Palette.of(context);
     final label = TextStyle(fontSize: 12, color: p.cardMuted);
     final emojis = kEmojis.contains(_emoji) ? kEmojis : [_emoji, ...kEmojis.take(15)];
+    final categories = [
+      for (final (_, name) in kCategories) name,
+      for (final c in StoreScope.read(context).categories)
+        if (categoryEmoji(c) == null) c,
+    ];
+    if (!_customOpen && _category.isNotEmpty && !categories.contains(_category)) categories.add(_category);
 
     Widget section(String title, Widget child, {double gap = 6}) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,29 +114,52 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
               children: [
                 section(
                   'Nom',
-                  TextField(
+                  _field(
+                    p,
                     controller: _name,
+                    hint: 'Ex. Arroser les plantes',
                     autofocus: !_isEdit,
-                    textCapitalization: TextCapitalization.sentences,
-                    textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _save(),
-                    style: TextStyle(fontSize: 17, color: p.cardInk),
-                    decoration: InputDecoration(
-                      hintText: 'Ex. Arroser les plantes',
-                      hintStyle: TextStyle(color: p.cardMuted.withValues(alpha: .7)),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                      filled: true,
-                      fillColor: p.card,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(color: p.rule),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                section(
+                  'Catégorie',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _categoryChip(p, 'Aucune', !_customOpen && _category.isEmpty, () => _pickCategory('')),
+                          for (final c in categories)
+                            _categoryChip(
+                              p,
+                              categoryLabel(c),
+                              !_customOpen && _category == c,
+                              () => _pickCategory(c),
+                            ),
+                          _categoryChip(p, '+ Autre', _customOpen, () {
+                            setState(() {
+                              _customOpen = true;
+                              _category = _custom.text.trim();
+                            });
+                          }),
+                        ],
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(color: p.cardAccent),
-                      ),
-                    ),
+                      if (_customOpen) ...[
+                        const SizedBox(height: 8),
+                        _field(
+                          p,
+                          controller: _custom,
+                          hint: 'Ex. Jardin, Musique…',
+                          autofocus: true,
+                          maxLength: 40,
+                          onChanged: (v) => setState(() => _category = v.trim()),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -241,6 +276,75 @@ class _HabitFormSheetState extends State<HabitFormSheet> {
       ],
     );
   }
+
+  Widget _field(
+    Palette p, {
+    required TextEditingController controller,
+    required String hint,
+    bool autofocus = false,
+    int? maxLength,
+    ValueChanged<String>? onChanged,
+    ValueChanged<String>? onSubmitted,
+  }) =>
+      TextField(
+        controller: controller,
+        autofocus: autofocus,
+        maxLength: maxLength,
+        textCapitalization: TextCapitalization.sentences,
+        textInputAction: TextInputAction.done,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        style: TextStyle(fontSize: 17, color: p.cardInk),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: p.cardMuted.withValues(alpha: .7)),
+          counterText: '',
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          filled: true,
+          fillColor: p.card,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: p.rule),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: p.cardAccent),
+          ),
+        ),
+      );
+
+  void _pickCategory(String c) => setState(() {
+        _customOpen = false;
+        _category = c;
+      });
+
+  Widget _categoryChip(Palette p, String label, bool sel, VoidCallback onTap) => Semantics(
+        button: true,
+        selected: sel,
+        child: Material(
+          color: sel ? p.seg : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+            side: BorderSide(color: sel ? p.cardAccent : p.rule, width: sel ? 1.5 : 1),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: sel ? p.cardAccent : p.cardInk,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 
   Widget _emojiButton(Palette p, String e) {
     final sel = e == _emoji;
