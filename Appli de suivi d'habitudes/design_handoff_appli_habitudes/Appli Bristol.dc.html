@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/nocturne-79adf451-2e39-4f5f-ba99-da9709549b4a/styles.css">
+  <script src="_ds/nocturne-79adf451-2e39-4f5f-ba99-da9709549b4a/_ds_bundle.js"></script>
+  <style>body{margin:0;background:var(--color-bg)} a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}</style>
+</helmet>
+<section data-screen-label="Appli Bristol — tous les écrans" style="padding:56px 64px 80px;display:flex;flex-direction:column;gap:48px;color:var(--color-text);font-family:var(--font-body)">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <span style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-300)">Direction 1a · Fiche bristol</span>
+    <h2 style="margin:0;font-size:32px">Tous les écrans de l’application</h2>
+    <p style="margin:0;color:var(--color-neutral-400);font-size:15px;text-wrap:pretty">Chaque téléphone est l’appli complète et fonctionne seul : barre d’onglets, appui long sur une fiche pour la modifier, « Nouvelle » pour créer, case de la grille pour corriger un jour, Supprimer en deux temps.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <h3 style="margin:0;font-size:20px">Mode clair</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:36px;--bg:#eef0f6;--ink:#1f2130;--muted:#5f6375;--card:#fdfdfb;--card-ink:#1f2130;--card-muted:#5f6375;--card-accent:#796cbf;--rule:#d9dce8;--seg:#e4e7f5;--ruled:oklch(0.85 0.05 240 / .45);--green:oklch(0.62 0.15 150);--green-deep:oklch(0.42 0.11 150);--done-bg:oklch(0.96 0.035 150);--done-ink:oklch(0.42 0.1 150);--done-ink-bg:oklch(0.42 0.1 150);--red:oklch(0.6 0.19 25);--accent:#796cbf;--tab-bg:#fdfdfb">
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Aujourd’hui</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="today" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Rattraper hier</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="yesterday" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Suivi</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="suivi" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Suivi · modifier un jour</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="day" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Nouvelle habitude</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="create" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Modifier l’habitude</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="edit" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">État vide</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="empty" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <h3 style="margin:0;font-size:20px">Mode sombre</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:36px;--bg:#161826;--ink:#e9e9ed;--muted:#9397ab;--card:#e4e3dc;--card-ink:#1f2130;--card-muted:#595d6c;--card-accent:#5d5294;--rule:#b2b6ca;--seg:#cfd3e5;--ruled:oklch(0.75 0.05 240 / .4);--green:oklch(0.6 0.15 150);--green-deep:oklch(0.42 0.11 150);--done-bg:oklch(0.89 0.06 150);--done-ink:oklch(0.4 0.1 150);--done-ink-bg:oklch(0.8 0.12 150);--red:oklch(0.58 0.19 25);--accent:#9184d9;--tab-bg:#1d1f2c">
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Aujourd’hui</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="today" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Rattraper hier</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="yesterday" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Suivi</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="suivi" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Suivi · modifier un jour</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="day" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Nouvelle habitude</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="create" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">Modifier l’habitude</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="edit" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:var(--color-neutral-400)">État vide</span>
+        <div style="width:376px;height:776px;padding:8px;border-radius:48px;background:#0d0e15;box-shadow:0 0 0 1px #3f424d, 0 24px 60px rgba(0,0,0,.5)"><div style="width:360px;height:760px;border-radius:40px;overflow:hidden"><dc-import name="AppBristol" screen="empty" hint-size="360px,760px" style="width:360px;height:760px"></dc-import></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

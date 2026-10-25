@@ -1,0 +1,32 @@
+{
+  "name": "mes-fiches-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API de synchronisation de l'appli Mes fiches",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "dev": "node --env-file-if-exists=.env --watch src/server.ts",
+    "typecheck": "tsc",
+    "test": "node --env-file-if-exists=.env --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "db:start": "node --env-file-if-exists=.env scripts/devdb.ts start",
+    "db:stop": "node --env-file-if-exists=.env scripts/devdb.ts stop"
+  },
+  "dependencies": {
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/swagger": "^9.9.2",
+    "@fastify/swagger-ui": "^6.1.2",
+    "fastify": "^5.12.7",
+    "fastify-plugin": "^6.0.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
+    "typescript": "^7.0.2"
+  }
+}
