@@ -65,6 +65,8 @@ autres applis.
 
 1. *Zero Trust* → *Access* → *Service Auth* → **Create Service Token** « mes-fiches-app ».
    Note le **Client ID** et le **Client Secret** (affiché une seule fois).
+   Secret perdu : *Refresh* ne fait que prolonger la validité, sans nouveau secret. Crée un
+   nouveau jeton, mets-le dans la politique *Service Auth* ci-dessous, puis supprime l’ancien.
 2. *Access* → *Applications* → *Add an application* → **Self-hosted** :
    - domaine : `api.<ton-domaine>` ;
    - politique 1 — action **Service Auth**, règle *Include* → *Service Token* →
@@ -73,6 +75,9 @@ autres applis.
      Swagger `/docs` dans le navigateur après connexion).
 3. L’appli enverra à chaque requête les en-têtes `CF-Access-Client-Id` et
    `CF-Access-Client-Secret`.
+
+Avec les en-têtes, une **502** signifie qu’Access a laissé passer mais que l’API ne répond pas
+(conteneur en cours de redéploiement ou arrêté : voir son état dans Coolify).
 
 Vérification (doit être **refusé** sans les en-têtes, **accepté** avec) :
 
