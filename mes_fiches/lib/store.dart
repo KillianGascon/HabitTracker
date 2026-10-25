@@ -158,7 +158,7 @@ class HabitStore extends ChangeNotifier {
     final Habit h;
     if (id == null) {
       h = Habit(
-        id: 'h${DateTime.now().millisecondsSinceEpoch}',
+        id: _newId(),
         name: name.trim(),
         emoji: emoji,
         period: period,
@@ -174,6 +174,15 @@ class HabitStore extends ChangeNotifier {
     }
     _pending.habit(h);
     _changed();
+  }
+
+  /// `h<millisecondes>`, sans reprendre un id existant (créations rapprochées).
+  String _newId() {
+    var n = DateTime.now().millisecondsSinceEpoch;
+    while (habits.any((h) => h.id == 'h$n')) {
+      n++;
+    }
+    return 'h$n';
   }
 
   /// Supprime l'habitude et tout son historique.
